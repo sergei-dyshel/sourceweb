@@ -8,7 +8,10 @@
 #include <QSettings>
 #include <QString>
 #include <QTimer>
+#include <QJsonDocument>
+
 #include <memory>
+#include <iostream>
 
 #include "MainWindow.h"
 #include "Project.h"
@@ -89,7 +92,7 @@ void Application::finishStartup()
         return;
     }
 
-    Nav::theProject = std::unique_ptr<Nav::Project>(new Nav::Project(path));
+    Nav::theProject = std::unique_ptr<Nav::Project>(new Nav::Project(path, m_settings));
     Nav::theMainWindow = new Nav::MainWindow(*Nav::theProject);
     Nav::theMainWindow->show();
 }
@@ -137,7 +140,6 @@ QFont Application::configurableFont(
     if (!face.isEmpty() && ok) {
         font.setFamily(face);
         font.setPointSize(size);
-        return font;
     } else {
         if (!defaultFace.isEmpty())
             font.setFamily(defaultFace);
@@ -145,8 +147,15 @@ QFont Application::configurableFont(
             font.setPointSize(defaultSize);
         if (defaultMonospace)
             font = setMonospaceFlagOnFont(font);
-        return font;
     }
+    m_settings.setValue(name + "_font_face", font.family());
+    m_settings.setValue(name + "_font_size", font.pointSize());
+    return font;
+}
+
+void Application::readSettings(const QString &filename)
+{
+
 }
 
 } // namespace Nav

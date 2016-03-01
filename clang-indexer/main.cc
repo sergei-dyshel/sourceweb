@@ -215,7 +215,14 @@ static std::string indexProjectFile(
     args.push_back(sfi->indexFilePath);
     args.push_back("--");
     args.insert(args.end(), sfi->clangArgv.begin(), sfi->clangArgv.end());
-    daemon->run(sfi->workingDirectory, args);
+    int res = daemon->run(sfi->workingDirectory, args);
+    if (res == 1) {
+        std::cerr << "Failed running daemon " << sfi->workingDirectory << " ";
+        for (const std::string &arg : args) {
+            std::cerr << arg << " ";
+        }
+        std::cerr << std::endl;
+    }
     daemonPool->release(daemon);
     return sfi->indexFilePath;
 }
