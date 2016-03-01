@@ -38,6 +38,9 @@ public:
     void navigateToFile(File *file);
     void navigateToRef(const Ref &ref);
 
+public slots:
+    void onDockMoved();
+
 private slots:
     void on_actionEditFind_triggered();
     void onFindBarClose();

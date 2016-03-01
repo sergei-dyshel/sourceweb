@@ -5,6 +5,8 @@
 #include <QList>
 #include <QString>
 #include <QStringList>
+#include <QSettings>
+
 #include <memory>
 #include <vector>
 #include <stdint.h>
@@ -29,7 +31,7 @@ extern std::unique_ptr<Project> theProject;
 class Project
 {
 public:
-    explicit Project(const QString &indexPath);
+    explicit Project(const QString &indexPath, QSettings &settings);
     ~Project();
     FileManager &fileManager() { return *m_fileManager; }
 
@@ -59,6 +61,8 @@ private:
     std::vector<Ref> *queryGlobalSymbolDefinitions();
 
 private:
+    const QString m_indexPath;
+    QSettings &m_settings;
     FileManager *m_fileManager;
     indexdb::Index *m_index;
     indexdb::StringTable *m_symbolStringTable;

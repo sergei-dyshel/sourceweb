@@ -6,6 +6,8 @@ import os
 import re
 import subprocess
 import sys
+import argparse
+import pipes
 
 if sys.version_info.major >= 3:
     # Provide aliases for things that Python 3 renamed.
@@ -79,7 +81,7 @@ def endsWithOneOf(text, extensions):
 def joinCommandLine(argv):
     # TODO: Actually get this right -- quotes,spaces,escapes,newlines
     # TODO: Review what Clang's libtooling and CMake do, especially on Windows.
-    return " ".join(argv)
+    return " ".join(pipes.quote(arg) for arg in argv)
 
 
 def isChildOfCompilerDriver(command):
@@ -145,30 +147,28 @@ def extractSourceFile(command):
             (command.line, absoluteInputFile))
         return None
 
-    output =  '{\n'
-    output += '  "directory" : %s,\n' % json.dumps(command.cwd)
-    output += '  "command" : %s,\n' % json.dumps(joinCommandLine(command.argv))
-    output += '  "file" : %s\n' % json.dumps(inputFile)
-    output += '}'
+    return dict(directory=command.cwd,
+                command=joinCommandLine(command.argv),
+                file=inputFile)
 
     return output
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--output', default="compile_commands.json")
+    parser.add_argument('-i', '--input', default='btrace.log')
+    return parser.parse_args()
 
 def main():
     firstFile = True
-    commands = readFile("btrace.log")
-    f = open("compile_commands.json", "w")
-    f.write("[")
-    for x in commands:
-        sourceFile = extractSourceFile(x)
-        if sourceFile is not None:
-            if not firstFile:
-                f.write(",")
-            firstFile = False
-            f.write("\n")
-            f.write(sourceFile)
-    f.write("\n]")
-    f.close()
+    args = parse_args()
+    json_cmds = []
+    for cmd in readFile(args.input):
+        json_cmd = extractSourceFile(cmd)
+        if json_cmd:
+            json_cmds.append(json_cmd)
+    with open(args.output, "w") as f:
+        json.dump(json_cmds, f, indent=4)
 
 
 if __name__ == "__main__":

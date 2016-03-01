@@ -32,7 +32,7 @@ CLANG_DIR=
 PREFIX=
 QMAKE=
 QMAKESPEC=
-QMAKE_FLAGS=
+QMAKE_FLAGS=CONFIG+=debug
 
 while [ $# -gt 0 ]; do
     ARG=$1

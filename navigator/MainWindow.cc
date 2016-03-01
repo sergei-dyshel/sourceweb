@@ -329,6 +329,13 @@ void MainWindow::actionTabStopSizeChanged()
     }
 }
 
+void MainWindow::onDockMoved()
+{
+    auto tabbar = findChild<QTabBar*>(QString(), Qt::FindDirectChildrenOnly);
+    if(tabbar)
+        tabbar->setElideMode(Qt::ElideLeft);
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QApplication::quit();
