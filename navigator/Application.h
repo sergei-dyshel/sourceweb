@@ -28,6 +28,7 @@ private:
             const QString &defaultFace,
             int defaultSize,
             bool defaultMonospace);
+    void readSettings(const QString &filename);
     QSettings m_settings;
 };
 

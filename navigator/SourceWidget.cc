@@ -4,6 +4,7 @@
 #include <QBrush>
 #include <QClipboard>
 #include <QColor>
+#include <QDockWidget>
 #include <QEvent>
 #include <QFont>
 #include <QFontMetrics>
@@ -31,6 +32,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
 #include <re2/prog.h>
 #include <re2/re2.h>
 #include <re2/regexp.h>
@@ -1257,10 +1259,44 @@ void SourceWidgetView::actionCrossReferences()
 {
     QAction *action = qobject_cast<QAction*>(sender());
     QString symbol = action->data().toString();
-    TableReportWindow *tw = new TableReportWindow;
+    QMainWindow *main_win = qobject_cast<QMainWindow *>(window());
+    QDockWidget *dock = new QDockWidget(symbol, main_win);
+    // TODO: search for existing
+
+    TableReportWindow *tw = new TableReportWindow(dock);
     ReportRefList *r = new ReportRefList(*theProject, symbol, tw);
     tw->setTableReport(r);
-    tw->show();
+    dock->setWidget(tw);
+    main_win->addDockWidget(Qt::BottomDockWidgetArea, dock);
+    auto tabified = false;
+    auto all_docks = main_win->findChildren<QDockWidget*>();
+    for (auto other_dock : all_docks) {
+        auto other_tabs = main_win->tabifiedDockWidgets(other_dock);
+        if (!other_tabs.isEmpty()) {
+            main_win->tabifyDockWidget(other_dock, dock);
+            tabified = true;
+            break;
+        }
+    }
+    if (!tabified) {
+        all_docks.pop_back(); // XXX: hidden last dock?
+        for (auto other_dock : all_docks) {
+                if (!other_dock->isFloating() &&
+                    qobject_cast<TableReportWindow *>(other_dock->widget())) {
+                    main_win->tabifyDockWidget(other_dock, dock);
+                    break;
+                }
+
+        }
+    }
+    dock->show();
+    dock->raise();
+
+    // tw->show();
+    connect(dock, &QDockWidget::dockLocationChanged, qobject_cast<MainWindow*>(main_win),
+            &MainWindow::onDockMoved);
+    connect(dock, &QDockWidget::topLevelChanged, qobject_cast<MainWindow*>(main_win),
+            &MainWindow::onDockMoved);
 }
 
 

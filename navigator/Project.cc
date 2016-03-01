@@ -21,7 +21,8 @@ const char kPathSymbolPrefix = '@';
 
 std::unique_ptr<Project> theProject;
 
-Project::Project(const QString &path)
+Project::Project(const QString &path, QSettings &settings)
+    : m_indexPath(path), m_settings(settings)
 {
     m_index = new indexdb::Index(path.toStdString());
     m_symbolStringTable = m_index->stringTable("Symbol");
@@ -235,7 +236,14 @@ const char *Project::fileNameCStr(indexdb::ID fileID)
 {
     const char *name = m_symbolStringTable->item(fileID);
     assert(name[0] == kPathSymbolPrefix);
-    return name + 1;
+    QFileInfo finfo(m_indexPath);
+    QDir pr_dir(finfo.dir());
+    QString rel_path = pr_dir.relativeFilePath(name + 1);
+    QString abs_path = name + 1;
+    QString path =
+        (abs_path.length() >= rel_path.length()) ? rel_path : abs_path;
+    return path.toStdString().c_str();
+    // return name + 1;
 }
 
 const std::vector<Ref> &Project::globalSymbolDefinitions()
